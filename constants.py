@@ -1,9 +1,5 @@
 import numpy as np
 
-"""
-The following constants are used in features_preprocessing file
-"""
-
 DEFENCE = ["RF", "LF", "RW", "LW", "ST", "CF"]
 MID = ["CAM", "LM", "CM", "RM", "CDM", "LWB"]
 ATTACK = ["LB", "RB", "CB", "RWB", "LWB"]
@@ -17,6 +13,23 @@ CREATED_FEATURES = [
     "avg_direct_away_goals_scored", "avg_direct_home_red_cards", "avg_direct_away_red_cards",
     "avg_home_att_pac", "avg_away_att_pac", "avg_home_def_pac", "avg_away_def_pac", "avg_home_phy",
     "avg_away_phy", "home_att_away_def_diff", "away_att_home_def_diff", "home_away_mid_diff", "FTR"
+]
+
+ORIGINAL_FEATURES = [
+    "HS", "AS", "HST", "AST", "HF", "AF", "HC", "AC", "HY", "AY", "HR", "AR"
+]
+
+FINAL_FEATURES = [
+    "HST",
+    "AST",
+    "home_away_mid_diff",
+    "home_att_away_def_diff",
+    "away_att_home_def_diff",
+    "HS",
+    "AS",
+    "avg3_away_shots",
+    "avg3_home_shots",
+    "avg3_away_goals_scored"
 ]
 
 MATCH_STATS_FILE_CHANGES = {
@@ -41,10 +54,6 @@ PLAYERS_FILE_CHANGES = {
     "Bournemouth": "AFC Bournemouth",
     "Brighton & Hove Albion": "Brighton and Hove Albion"
 }
-
-"""
-The following constants are used in feature_extraction file
-"""
 
 excel_file_name = [
     "LineUp16-17.xlsx",
@@ -109,30 +118,62 @@ TEAM_PER_LEAGUE = {
     ]
 }
 
-"""
-The following constants are used in learning file
-"""
-
 HYPER_PARAMETERS = {
-    "KNN": {'n_neighbors': [i for i in range(3, 20) if i % 2 != 0]},
+    "KNN": {
+        'n_neighbors': [i for i in range(3, 20) if i % 2 != 0],
+        'weights': ['uniform', 'distance']
+    },
 
-    "DT": {'max_depth': [i for i in range(5, 20)]},
+    "DT": {
+        'max_depth': [i for i in range(5, 20)],
+        'splitter': ['best', 'random']
+    },
 
-    "RF": {'n_estimators': [i for i in range(5, 16)],
-           'criterion': ['gini'],
-           'max_depth': range(5, 15),
-           'min_samples_split': [pow(2, i) for i in range(2, 4)]
-           },
+    "RF": {
+        'n_estimators': [i for i in range(5, 16)],
+        'criterion': ['gini'],
+        'max_depth': range(5, 15),
+        'min_samples_split': [pow(2, i) for i in range(2, 4)]
+    },
 
-    "SVC": {'C': [i / 10 for i in range(1, 11)],
-            'kernel': ['linear', 'poly', 'rbf', 'sigmoid'],
-            'degree': [i for i in range(1, 5)],
-            'probability': [True, False],
-            'gamma': ['scale', 'auto']
-            },
+    "SVC": {
+        'C': [i / 10 for i in range(1, 11)],
+        'kernel': ['linear', 'poly', 'rbf', 'sigmoid'],
+        'degree': [i for i in range(1, 5)],
+        'probability': [True, False],
+        'gamma': ['scale', 'auto']
+    },
 
-    "GB": {'min_samples_leaf': np.linspace(2e-4, 0.01, num=7),
-           'min_samples_split': np.linspace(2e-4, 0.05, num=7),
-           'max_depth': [7]
-           }
+    "GB": {
+        'min_samples_leaf': np.linspace(2e-4, 0.01, num=7),
+        'min_samples_split': np.linspace(2e-4, 0.05, num=7),
+        'max_depth': [7],
+        'n_estimators': [100, 200, 300, 400],
+    },
+    "AdaBoost": {
+        "n_estimators": [i for i in range(30, 300, 10)],
     }
+}
+
+TEAMS_LIST = [
+    "Arsenal",
+    "Everton",
+    "Chelsea",
+    "Liverpool",
+    "Tottenham Hotspur",
+    "Leicester City",
+    "Brighton and Hove Albion",
+    "Manchester City",
+    "Wolverhampton Wanderers",
+    "Manchester United",
+    "Newcastle United",
+    "Norwich City",
+    "West Ham United",
+    "Aston Villa",
+    'AFC Bournemouth',
+    'Sheffield United',
+    "Crystal Palace",
+    "Burnley",
+    "Watford",
+    "Southampton"
+]

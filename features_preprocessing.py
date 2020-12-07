@@ -5,30 +5,23 @@ from constants import *
 
 
 class FeaturesPreprocessor:
-    def __init__(self) -> None:
-        self.match_statistics = pandas.read_excel(
-            'C:\\Users\\USER\\PycharmProjects\\PredectingPLMatchesResult\\Datasets\\LastThreeSeasons.xlsx')
-        self.lineups17 = pandas.read_excel(
-            "C:\\Users\\USER\\PycharmProjects\\PredectingPLMatchesResult\\Datasets\\LineUp16-17.xlsx")
-        self.lineups18 = pandas.read_excel(
-            "C:\\Users\\USER\\PycharmProjects\\PredectingPLMatchesResult\\Datasets\\LineUp17-18.xlsx")
-        self.lineups19 = pandas.read_excel(
-            "C:\\Users\\USER\\PycharmProjects\\PredectingPLMatchesResult\\Datasets\\LineUp18-19.xlsx")
-        self.lineups20 = pandas.read_excel(
-            "C:\\Users\\USER\\PycharmProjects\\PredectingPLMatchesResult\\Datasets\\LineUp19-20.xlsx")
+    def __init__(self, input_file_path, output_file_path) -> None:
+        self.output_file_path = output_file_path
 
-        self.players17 = pandas.read_excel(
-            'C:\\Users\\USER\\PycharmProjects\\PredectingPLMatchesResult\\Datasets\\Players16-17.xlsx')
-        self.players18 = pandas.read_excel(
-            'C:\\Users\\USER\\PycharmProjects\\PredectingPLMatchesResult\\Datasets\\Players17-18.xlsx')
-        self.players19 = pandas.read_excel(
-            'C:\\Users\\USER\\PycharmProjects\\PredectingPLMatchesResult\\Datasets\\Players18-19.xlsx')
-        self.players20 = pandas.read_excel(
-            'C:\\Users\\USER\\PycharmProjects\\PredectingPLMatchesResult\\Datasets\\Players19-20.xlsx')
+        self.match_statistics = pandas.read_excel(input_file_path)
+        self.lineups17 = pandas.read_excel("Collected_Data\\LineUp16-17.xlsx")
+        self.lineups18 = pandas.read_excel("Collected_Data\\LineUp17-18.xlsx")
+        self.lineups19 = pandas.read_excel("Collected_Data\\LineUp18-19.xlsx")
+        self.lineups20 = pandas.read_excel("Collected_Data\\LineUp19-20.xlsx")
+
+        self.players17 = pandas.read_excel('Collected_Data\\Players16-17.xlsx')
+        self.players18 = pandas.read_excel('Collected_Data\\Players17-18.xlsx')
+        self.players19 = pandas.read_excel('Collected_Data\\Players18-19.xlsx')
+        self.players20 = pandas.read_excel('Collected_Data\\Players19-20.xlsx')
 
     def get_all_matches_features(self):
         data = []
-        for i in range(41, 1140):
+        for i in range(41, 1520):
             match_feature = \
                 self._get_match_features(
                     self.match_statistics.at[i, "HomeTeam"],
@@ -37,7 +30,7 @@ class FeaturesPreprocessor:
                 )
             data.append(match_feature)
 
-        pandas.DataFrame(data, columns=CREATED_FEATURES).to_excel("selected_feature.xlsx")
+        pandas.DataFrame(data, columns=CREATED_FEATURES).to_excel(self.output_file_path)
 
     def update_players_file(self, create_new_file: bool):
         self.players17["Team"] = self.players17["Team"].map(update_players_teams)
@@ -51,12 +44,12 @@ class FeaturesPreprocessor:
             self.players19.to_excel("NewPlayers18-19.xlsx")
             self.players20.to_excel("NewPlayers19-20.xlsx")
 
-    def update_last_three_season_file(self):
+    def format_input_file(self):
 
-        self.match_statistics["HomeTeam"] = t.match_statistics["HomeTeam"].apply(update_match_statistics_teams)
-        self.match_statistics["AwayTeam"] = t.match_statistics["AwayTeam"].apply(update_match_statistics_teams)
-        self.match_statistics["HomeTeam"] = t.match_statistics["HomeTeam"].apply(update_players_teams)
-        self.match_statistics["AwayTeam"] = t.match_statistics["AwayTeam"].apply(update_players_teams)
+        self.match_statistics["HomeTeam"] = self.match_statistics["HomeTeam"].apply(update_match_statistics_teams)
+        self.match_statistics["AwayTeam"] = self.match_statistics["AwayTeam"].apply(update_match_statistics_teams)
+        self.match_statistics["HomeTeam"] = self.match_statistics["HomeTeam"].apply(update_players_teams)
+        self.match_statistics["AwayTeam"] = self.match_statistics["AwayTeam"].apply(update_players_teams)
 
     def _get_match_features(self, home_team: str, away_team: str, date: str):
         direct_matches: pandas.DataFrame = self._get_direct_games(home_team, away_team, date)
@@ -154,7 +147,7 @@ class FeaturesPreprocessor:
     def _get_lineups_by_season(self, date: str):
         year = int((date.split('/'))[-1]) - 2000
         month = int((date.split('/'))[1])
-        year += month >= 7
+        year += month >= 8
         switch = {
             17: self.lineups17,
             18: self.lineups18,
@@ -196,6 +189,7 @@ class FeaturesPreprocessor:
 
     def _get_match_line_up(self, home_team, away_team, date, at_home):
         lineup_by_season = self._get_lineups_by_season(date)
+        print(f"{home_team}, {away_team}, {date}")
         match = lineup_by_season[
             (lineup_by_season["HomeTeam"] == home_team) & (lineup_by_season["AwayTeam"] == away_team)]
         team = match.iloc[0]["HomeLineUp"] if at_home else match.iloc[0]["AwayLineUp"]
@@ -233,41 +227,11 @@ def update_players_teams(team):
 
 
 if __name__ == '__main__':
-    t = FeaturesPreprocessor()
+    t = FeaturesPreprocessor('Collected_Data\\LastThreeSeasons.xlsx', 'postprocessing_data\\selected_feature.xlsx')
+    t.format_input_file()
     t.get_all_matches_features()
 
-    '''
-    Getting input from user
-    home_team, away_team, date = input("please enter home team vs away team and the date of the game\n").split(",")
-    res = t.get_match_features(home_team, away_team, date)
-    print(res)
-    '''
+    t = FeaturesPreprocessor('Collected_Data\\All_Data.xlsx', 'postprocessing_data\\selected_feature_all_data.xlsx')
+    t.format_input_file()
+    t.get_all_matches_features()
 
-    '''
-    Get only numerical features
-    numerical_features = new_features.drop(columns=["Date", "HomeTeam", "AwayTeam", "FTR"])
-    print(numerical_features)
-    print(numerical_features)
-    '''
-
-    '''
-    Drop Nan Values
-    numerical_features = numerical_features.dropna()
-    '''
-
-    '''
-    returns columns names
-    col = sorted(numerical_features)
-    '''
-
-    '''
-    normalizing data
-    x = preprocessing.normalize(numerical_features)
-    print(pandas.DataFrame(x, columns=col))
-    '''
-
-    '''
-    Print all data frame
-    with pandas.option_context('display.max_rows', None, 'display.max_columns', None):
-        print(pd)
-    '''
