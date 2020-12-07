@@ -9,19 +9,21 @@ class FeaturesPreprocessor:
         self.output_file_path = output_file_path
 
         self.match_statistics = pandas.read_excel(input_file_path)
-        self.lineups17 = pandas.read_excel("Collected_Data\\LineUp16-17.xlsx")
-        self.lineups18 = pandas.read_excel("Collected_Data\\LineUp17-18.xlsx")
-        self.lineups19 = pandas.read_excel("Collected_Data\\LineUp18-19.xlsx")
-        self.lineups20 = pandas.read_excel("Collected_Data\\LineUp19-20.xlsx")
+        self.lineups17 = pandas.read_excel("collected_data\\lineups\\LineUp16-17.xlsx")
+        self.lineups18 = pandas.read_excel("collected_data\\lineups\\LineUp17-18.xlsx")
+        self.lineups19 = pandas.read_excel("collected_data\\lineups\\LineUp18-19.xlsx")
+        self.lineups20 = pandas.read_excel("collected_data\\lineups\\LineUp19-20.xlsx")
 
-        self.players17 = pandas.read_excel('Collected_Data\\Players16-17.xlsx')
-        self.players18 = pandas.read_excel('Collected_Data\\Players17-18.xlsx')
-        self.players19 = pandas.read_excel('Collected_Data\\Players18-19.xlsx')
-        self.players20 = pandas.read_excel('Collected_Data\\Players19-20.xlsx')
+        self.players17 = pandas.read_excel('collected_data\\players_statistics\\Players16-17.xlsx')
+        self.players18 = pandas.read_excel('collected_data\\players_statistics\\Players17-18.xlsx')
+        self.players19 = pandas.read_excel('collected_data\\players_statistics\\Players18-19.xlsx')
+        self.players20 = pandas.read_excel('collected_data\\players_statistics\\Players19-20.xlsx')
 
     def get_all_matches_features(self):
         data = []
-        for i in range(41, 1520):
+        for i, row in self.match_statistics.iterrows():
+            if i < 40:
+                continue
             match_feature = \
                 self._get_match_features(
                     self.match_statistics.at[i, "HomeTeam"],
@@ -52,6 +54,7 @@ class FeaturesPreprocessor:
         self.match_statistics["AwayTeam"] = self.match_statistics["AwayTeam"].apply(update_players_teams)
 
     def _get_match_features(self, home_team: str, away_team: str, date: str):
+        print(home_team, away_team, date)
         direct_matches: pandas.DataFrame = self._get_direct_games(home_team, away_team, date)
         last_3_away_games = self._get_last_k_team_games(3, away_team, date, False)
         last_3_home_games = self._get_last_k_team_games(3, home_team, date, True)
@@ -189,7 +192,6 @@ class FeaturesPreprocessor:
 
     def _get_match_line_up(self, home_team, away_team, date, at_home):
         lineup_by_season = self._get_lineups_by_season(date)
-        print(f"{home_team}, {away_team}, {date}")
         match = lineup_by_season[
             (lineup_by_season["HomeTeam"] == home_team) & (lineup_by_season["AwayTeam"] == away_team)]
         team = match.iloc[0]["HomeLineUp"] if at_home else match.iloc[0]["AwayLineUp"]
@@ -227,11 +229,13 @@ def update_players_teams(team):
 
 
 if __name__ == '__main__':
-    t = FeaturesPreprocessor('Collected_Data\\LastThreeSeasons.xlsx', 'postprocessing_data\\selected_feature.xlsx')
+    t = FeaturesPreprocessor('collected_data\\match_statistics\\LastThreeSeasons.xlsx', 'postprocessing_data\\selected_feature.xlsx')
     t.format_input_file()
+    t.update_players_file(False)
     t.get_all_matches_features()
 
-    t = FeaturesPreprocessor('Collected_Data\\All_Data.xlsx', 'postprocessing_data\\selected_feature_all_data.xlsx')
+    t = FeaturesPreprocessor('collected_data\\match_statistics\\all_seasons.xlsx', 'postprocessing_data\\selected_feature_all_data.xlsx')
     t.format_input_file()
+    t.update_players_file(False)
     t.get_all_matches_features()
 
