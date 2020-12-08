@@ -35,7 +35,7 @@ def print_result(home_team, away_team, res):
 
 if __name__ == '__main__':
 
-    model = torch.load('network_model')
+    model = torch.load('network_model2')
     clf = joblib.load('finalized_model.sav')
 
     data_normalizer = DataNormalizer()
