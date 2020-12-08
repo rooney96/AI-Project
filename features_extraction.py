@@ -72,7 +72,6 @@ def get_premier_league_lineups(starting_idx: int, ending_idx: int, excel_file_na
     data = []
     for match in range(starting_idx, ending_idx):
         try:
-            print(match)
             home_team_starting = []
             away_team_starting = []
             driver.get("https://www.premierleague.com/match/" + str(match))
@@ -117,8 +116,8 @@ def get_premier_league_lineups(starting_idx: int, ending_idx: int, excel_file_na
 
 if __name__ == '__main__':
 
-    for name, idx in zip(excel_file_name, matches_indexes):
-        get_premier_league_lineups(idx[0], idx[1], name)
-
     for name, _urls, _teams in zip(TEAM_PER_LEAGUE.keys(), players_stats.values(), TEAM_PER_LEAGUE.values()):
         _get_players_stats(name, _urls, _teams)
+
+    for name, idx in zip(excel_file_name, matches_indexes):
+        get_premier_league_lineups(idx[0], idx[1], name)

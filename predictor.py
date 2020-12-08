@@ -1,27 +1,16 @@
-from sklearn.metrics import accuracy_score
 from constants import TEAMS_LIST
-from sklearn.svm import SVC
 from features_predictions import *
 from constants import FINAL_FEATURES, CREATED_FEATURES, ORIGINAL_FEATURES
 import joblib
+import argparse
+from sklearn.metrics import accuracy_score
+
 
 selected_features = pd.read_excel('postprocessing_data\\selected_feature.xlsx')
 predicted_features: pd.DataFrame = pd.read_excel("collected_data\\match_statistics\\LastThreeSeasons.xlsx").iloc[40:]
 predicted_features = predicted_features.reset_index(drop=True)
 predicted_features = predicted_features.drop(columns=["Date", "HomeTeam", "AwayTeam", "FTR", "FTHG", "FTAG"])
 data = pd.concat([selected_features, predicted_features], axis=1, join='inner')
-
-
-def input_is_valid(command: str):
-    teams = command.split("vs")
-    teams = [team.strip(' ') for team in teams]
-    if len(teams) != 2:
-        print("Invalid Input")
-        return
-    if not all(team in TEAMS_LIST for team in teams):
-        print("Invalid Teams Name")
-        return
-    return teams[0], teams[1]
 
 
 def print_result(home_team, away_team, res):
@@ -35,17 +24,24 @@ def print_result(home_team, away_team, res):
 
 if __name__ == '__main__':
 
-    model = torch.load('network_model2')
+    # model = torch.load('network_model')
+    model = DynamicNet(D_in, 256, D_out)
+    optimizer = torch.optim.SGD(model.parameters(), lr=0.01, momentum=0.9)
+    runNN1(optimizer, model)
+
     clf = joblib.load('finalized_model.sav')
+    # # TODO: make sure its working on windows
+    # model = model.double()
 
     data_normalizer = DataNormalizer()
-    selected_features = pd.read_excel('postprocessing_data\\selected_feature_all_data.xlsx')
+    selected_features = pd.read_excel('postprocessing_data/selected_feature_all_data.xlsx')
     selected_features = selected_features.iloc[1100:]
     selected_features = selected_features.reset_index(drop=True)
     y_test = selected_features["FTR"]
     test = selected_features.drop(columns=["FTR", "Date", "HomeTeam", "AwayTeam"])
     test = test.fillna(test.mean())
     test = data_normalizer(test)
+
     x_test = []
     test_cols = [element for element in CREATED_FEATURES + ORIGINAL_FEATURES if
                  element not in ["FTR", "Date", "HomeTeam", "AwayTeam"]]
@@ -58,67 +54,25 @@ if __name__ == '__main__':
     df = df[FINAL_FEATURES]
 
     y_pred = clf.predict(df)
-    acc = accuracy_score(y_test, y_pred)
-    print(acc)
-    print("please enter home team vs away team:\n"
-          "for example: Chelsea vs Arsenal\n"
-          "for the team list please enter h for quit enter q:")
-    while True:
-        command = input()
-        if command == "h":
-            print(*TEAMS_LIST, sep="\n")
-        elif command == "q":
-            break
+    print(f"{len(y_pred), len(y_test)}")
+    score = 0
+    for idx in range(len(y_pred)):
+        score += y_pred[idx] == y_test[idx]
+    print(f"accuracy = {score/len(y_test)}")
+    parser = argparse.ArgumentParser(description='Premier League Match Predictor:', usage='predictor.py [options]')
+    parser.add_argument('-H', '--home_team', metavar='', help='Home Team')
+    parser.add_argument('-A', '--away_team', metavar='', help='Away Team')
+    parser.add_argument('-T', action='store_true', help="Displays available teams")
+
+    args = parser.parse_args()
+    if args.T:
+        print("Premier League Teams List For Season 2019/20:")
+        print(*TEAMS_LIST, sep="\n")
+
+    else:
+        if not all(team in TEAMS_LIST for team in [args.home_team, args.away_team]):
+            print("Invalid Teams Name")
         else:
-            if input_is_valid(command) is None:
-                continue
-            home_team, away_team = input_is_valid(command)
             index = selected_features.index[
-                (selected_features['HomeTeam'] == home_team) & (selected_features["AwayTeam"] == away_team)].tolist()
-            print_result(home_team, away_team, y_pred[index[0]])
-
-
-"""
-data_normalizer = DataNormalizer()
-data = data_normalizer(data)
-x_train = data[FINAL_FEATURES]
-x_train = x_train.fillna(x_train.mean())
-y_train = data["FTR"]
-
-clf = SVC(C=0.8, degree=1, gamma='auto', kernel='linear', probability=False)
-clf.fit(x_train, y_train)
-
-selected_features = pd.read_excel('postprocessing_data\\selected_feature_all_data.xlsx')
-selected_features = selected_features.iloc[1100:]
-selected_features = selected_features.reset_index(drop=True)
-y_test = selected_features["FTR"]
-test = selected_features.drop(columns=["FTR", "Date", "HomeTeam", "AwayTeam"])
-test = test.fillna(test.mean())
-test = data_normalizer(test)
-test_cols = [element for element in CREATED_FEATURES + ORIGINAL_FEATURES if
-             element not in ["FTR", "Date", "HomeTeam", "AwayTeam"]]
-max_acc = 0
-for N in [200, 300, 400]:
-    for i in range(4):
-        x_test = []
-        D_in, H, D_out = 31, 64, 12
-        model, loss = DynamicNet(D_in, H, D_out, 400).run()
-        for i in range(380):
-            features = torch.tensor(test.iloc[i])
-            new_features = model(features)
-            x_test.append(torch.cat((features, new_features), 0).tolist())
-
-        df = pd.DataFrame(data=x_test, columns=test_cols)
-        df = df[FINAL_FEATURES]
-
-        y_pred = clf.predict(df)
-        acc = accuracy_score(y_test, y_pred)
-        if acc >= max_acc:
-            print(acc)
-            max_acc = acc
-            best_model = model
-
-torch.save(best_model, 'network_model')
-print(max_acc)
-
-"""
+                (selected_features['HomeTeam'] == args.home_team) & (selected_features["AwayTeam"] == args.away_team)].tolist()
+            print_result(args.home_team, args.away_team, y_pred[index[0]])

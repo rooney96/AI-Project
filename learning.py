@@ -17,12 +17,12 @@ data = pd.concat([selected_features, predicted_features], axis=1, join='inner')
 
 
 def select_best_k_features():
-    knn = KNeighborsClassifier(n_neighbors=17, weights='distance')
+    knn = KNeighborsClassifier(n_neighbors=89, weights='distance')
     random_forest = RandomForestClassifier(criterion='gini', max_depth=7, min_samples_split=4, n_estimators=15)
     decision_tree = DecisionTreeClassifier(max_depth=5, splitter='random')
     svc = SVC(C=0.8, degree=1, gamma='auto', kernel='linear', probability=False)
-    gb = GradientBoostingClassifier(max_depth=7, min_samples_leaf=0.01, min_samples_split=0.0002, n_estimators=100)
-    ab = AdaBoostClassifier(n_estimators=30)
+    gb = GradientBoostingClassifier(max_depth=6, n_estimators=20)
+    ab = AdaBoostClassifier(n_estimators=25)
     x_train = data.drop(columns=["Date", "HomeTeam", "AwayTeam", "FTR"])
     # filling missing value
     x_train = x_train.fillna(x_train.mean())
@@ -42,7 +42,6 @@ def select_best_k_features():
         featureScores = pd.concat([dfcolumns, dfscores], axis=1)
         featureScores.columns = ['Specs', 'Score']
         selected_features = (featureScores.nlargest(k, 'Score'))['Specs']
-        print(selected_features)
         x_new = x_train[selected_features]
 
         results = []
@@ -67,12 +66,12 @@ def find_best_model():
     y_train = data["FTR"]
 
     classifiers = {
-        "KNN": KNeighborsClassifier,
-        "DT": DecisionTreeClassifier,
-        "RF": RandomForestClassifier,
+        # "KNN": KNeighborsClassifier,
+        # "DT": DecisionTreeClassifier,
+        # "RF": RandomForestClassifier,
         "GB": GradientBoostingClassifier,
-        "AdaBoost": AdaBoostClassifier,
-        "SVC": SVC,
+        # "AdaBoost": AdaBoostClassifier,
+        # "SVC": SVC,
     }
     scores = []
     for clf_name, clf in classifiers.items():

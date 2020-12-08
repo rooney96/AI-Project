@@ -120,7 +120,7 @@ TEAM_PER_LEAGUE = {
 
 HYPER_PARAMETERS = {
     "KNN": {
-        'n_neighbors': [i for i in range(3, 20) if i % 2 != 0],
+        'n_neighbors': [i for i in range(3, 30) if i % 2 != 0],
         'weights': ['uniform', 'distance']
     },
 
@@ -145,9 +145,9 @@ HYPER_PARAMETERS = {
     },
 
     "GB": {
-        'min_samples_leaf': np.linspace(2e-4, 0.01, num=7),
-        'min_samples_split': np.linspace(2e-4, 0.05, num=7),
-        'max_depth': [7],
+        # 'min_samples_leaf': np.linspace(2e-4, 0.01, num=7),
+        # 'min_samples_split': np.linspace(2e-4, 0.05, num=7),
+        'max_depth': [i for i in range(3, 11)],
         'n_estimators': [100, 200, 300, 400],
     },
     "AdaBoost": {
