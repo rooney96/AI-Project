@@ -1,0 +1,6 @@
+An examiner's guide that explains exactly how the experiments described in the project can be performed again.
+python features_extraction.py (download webdriver for chrome link in lib.txt)
+python features_preprocessing.py 
+python features_predictions.py
+python learning.py
+python predictor.py (you can find run examples in the final report).
