@@ -24,14 +24,8 @@ def print_result(home_team, away_team, res):
 
 if __name__ == '__main__':
 
-    # model = torch.load('network_model')
-    model = DynamicNet(D_in, 256, D_out)
-    optimizer = torch.optim.SGD(model.parameters(), lr=0.01, momentum=0.9)
-    runNN1(optimizer, model)
-
+    model = torch.load('network_model')
     clf = joblib.load('finalized_model.sav')
-    # # TODO: make sure its working on windows
-    # model = model.double()
 
     data_normalizer = DataNormalizer()
     selected_features = pd.read_excel('postprocessing_data/selected_feature_all_data.xlsx')
